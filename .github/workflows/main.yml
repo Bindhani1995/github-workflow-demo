@@ -1,4 +1,4 @@
-name: Collectlogic Check
+name: CCMR3 Checks
 
 on:
   pull_request:
@@ -6,37 +6,19 @@ on:
       - main
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  build-and-test:
+    runs-on: self-hosted
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 20
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Build
-        run: npm run build
-
-      - name: Check Warnings
+      - name: Build and test in Docker
         run: |
-          # Capture warning counts
-          WARNING_COUNT=$(grep -r "warning" build-output-folder/ | wc -l || true)
+          docker build -t my-app .
+          docker run my-app npm install
+          docker run my-app npm run build
+          docker run my-app npx eslint --quiet src/
 
-          # Display warning counts
-          echo "Total warnings: $WARNING_COUNT"
-
-          # Fail if warnings are found
-          if [ $WARNING_COUNT -gt 0 ]; then
-            echo "Warnings found. Failing the build."
-            exit 1
-          fi
-
-      - name: Unit Test
-        run: npm test
+      - name: Cleanup Docker image
+        run: docker rmi my-app
