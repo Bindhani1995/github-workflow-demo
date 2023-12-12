@@ -38,5 +38,5 @@ jobs:
             exit 1
           fi
 
-      - name: Test
+      - name: Unit Test
         run: npm test
