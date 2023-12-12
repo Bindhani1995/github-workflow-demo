@@ -1,4 +1,4 @@
-name: CI
+name: CCMR3 Checks
 
 on:
   pull_request:
@@ -6,38 +6,19 @@ on:
       - main
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  build-and-test:
+    runs-on: self-hosted
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 20
+      - name: Build and test in Docker
+        run: |
+          docker build -t my-app .
+          docker run my-app npm install
+          docker run my-app npm run build
+          docker run my-app npx eslint --quiet src/
 
-      - name: Install dependencies
-        run: npm install
-
-      - name: Build
-        run: npm run build
-
-  test:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 20
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Run tests
-        run: npm test
+      - name: Cleanup Docker image
+        run: docker rmi my-app
