@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  build:
+  build-and-test:
     runs-on: ubuntu-latest
 
     steps:
@@ -16,28 +16,27 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 20
+          node-version: 14
 
       - name: Install dependencies
         run: npm install
 
-      - name: Build
-        run: npm run build
+      - name: Build and Test
+        run: |
+          # Run your build command
+          npm run build
 
-  test:
-    runs-on: ubuntu-latest
+          # Capture warning counts
+          WARNING_COUNT=$(grep -r "warning" build-output-folder/ | wc -l || true)
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+          # Display warning counts
+          echo "Total warnings: $WARNING_COUNT"
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 20
+          # Fail if warnings are found
+          if [ $WARNING_COUNT -gt 0 ]; then
+            echo "Warnings found. Failing the build."
+            exit 1
+          fi
 
-      - name: Install dependencies
-        run: npm install
-
-      - name: Run tests
-        run: npm test
+          # Run your tests
+          npm test
